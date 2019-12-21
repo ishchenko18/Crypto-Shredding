@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
-import javax.validation.constraints.NotBlank;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
@@ -35,9 +34,7 @@ public class UserService {
 
     public boolean createUser(UserDTO userDTO) throws Exception {
 
-        Set<UserDTO> users = readUsers();
-
-        if (users.stream().anyMatch(u -> StringUtils.equals(u.getUsername(), userDTO.getUsername()))) {
+        if (checkExistenceOfUSer(userDTO.getUsername())) {
             LOGGER.warn("User already exist.");
             return false;
         }
@@ -52,7 +49,7 @@ public class UserService {
         }
 
 
-        try (Writer writer = new FileWriter(String.format(keysPath, userDTO.getUsername()))) {
+        try (Writer writer = new FileWriter(buildKeyPath(userDTO.getUsername()))) {
             writer.write(Base64.getEncoder().encodeToString(secretKey.getEncoded()));
         } catch (IOException ex) {
             LOGGER.error("Error occurred during writing of key.");
@@ -61,6 +58,16 @@ public class UserService {
 
         LOGGER.info("User successfully created.");
         return true;
+    }
+
+    public boolean deleteUser(String username) throws Exception {
+
+        if (!checkExistenceOfUSer(username)) {
+            LOGGER.warn("User with this username doesn't exist.");
+            return false;
+        }
+
+        return Files.deleteIfExists(Paths.get(buildKeyPath(username)));
     }
 
     private Set<UserDTO> readUsers() throws IOException {
@@ -79,23 +86,6 @@ public class UserService {
         return users;
     }
 
-    public String readKeyForUser(@NotBlank String username) throws IOException {
-
-        Reader reader = Files.newBufferedReader(Paths.get(keysPath));
-
-        CSVParser csvParser = CsvUtils.createCsvParser(reader, "Username", "Key");
-
-        for (CSVRecord record : csvParser) {
-            if (record.size() == 2 && record.get("Username").equals(username)) {
-                return record.get("Key");
-            }
-        }
-
-        String message = String.format("Key for user %s isn't generated.", username);
-        LOGGER.error(message);
-        throw new IllegalStateException(message);
-    }
-
     private List<Object> createUserRecord(UserDTO user, SecretKey secretKey) throws Exception {
         List<Object> record = new ArrayList<>();
 
@@ -104,5 +94,13 @@ public class UserService {
         record.add(AESUtils.encrypt(user.getPassword(), secretKey));
 
         return record;
+    }
+
+    private boolean checkExistenceOfUSer(String username) throws IOException {
+        return readUsers().stream().anyMatch(u -> StringUtils.equals(u.getUsername(), username));
+    }
+
+    private String buildKeyPath(String username) {
+        return String.format(keysPath, username);
     }
 }

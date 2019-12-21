@@ -14,15 +14,13 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @RequestMapping(value = "/create", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.POST)
+    @RequestMapping(value = "/create", consumes = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.POST)
     public ResponseEntity<Void> createUser(@RequestBody UserDTO user) throws Exception {
-
         return userService.createUser(user) ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
     }
 
-    @RequestMapping(value = "/delete", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
-    public ResponseEntity<Void> deleteUser() {
-
-        return ResponseEntity.ok(null);
+    @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
+    public ResponseEntity<Void> deleteUser(@RequestParam("username") String username) throws Exception {
+        return userService.deleteUser(username) ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
     }
 }
