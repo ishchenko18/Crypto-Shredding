@@ -1,5 +1,5 @@
-/target
-/.idea
+/target/
+/.idea/
 *.iml
-/src/main/resources/data
-/logs
+/src/main/resources/data/
+/logs/
