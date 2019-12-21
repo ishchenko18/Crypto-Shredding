@@ -1,0 +1,28 @@
+package com.kpi.controllers;
+
+import com.kpi.dto.UserDTO;
+import com.kpi.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/user")
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+    @RequestMapping(value = "/create", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.POST)
+    public ResponseEntity<Void> createUser(@RequestBody UserDTO user) throws Exception {
+
+        return userService.createUser(user) ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
+    }
+
+    @RequestMapping(value = "/delete", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
+    public ResponseEntity<Void> deleteUser() {
+
+        return ResponseEntity.ok(null);
+    }
+}
