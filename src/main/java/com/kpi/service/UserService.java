@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
@@ -68,6 +69,22 @@ public class UserService {
         }
 
         return Files.deleteIfExists(Paths.get(buildKeyPath(username)));
+    }
+
+    public UserDTO getUserByUsername(String username) throws Exception {
+
+        UserDTO user = readUsers().stream()
+                .filter(u -> u.getUsername().equals(username))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("User doesn't exist."));
+
+        String key = new String(Files.readAllBytes(Paths.get(buildKeyPath(username))));
+        byte[] decodedKey = Base64.getDecoder().decode(key);
+        SecretKey secretKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
+
+        user.setPassword(AESUtils.decrypt(user.getPassword(), secretKey));
+
+        return user;
     }
 
     private Set<UserDTO> readUsers() throws IOException {

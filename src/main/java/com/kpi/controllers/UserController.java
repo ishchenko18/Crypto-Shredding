@@ -23,4 +23,9 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@RequestParam("username") String username) throws Exception {
         return userService.deleteUser(username) ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
     }
+
+    @RequestMapping(value = "/retrieve", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<UserDTO> getUser(@RequestParam("username") String username) throws Exception {
+        return ResponseEntity.ok(userService.getUserByUsername(username));
+    }
 }
